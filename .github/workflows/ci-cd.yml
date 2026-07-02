@@ -1,33 +1,35 @@
-name: CI/CD Calculator App
+name: CI/CD Calculator
 
 on:
   push:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
-
   ci:
-
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
 
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Install Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Install Dependency
-        run: npm install
+      - run: npm install
 
-      - name: Run Unit Test
-        run: npm test
+      - run: npm test
 
-      - name: Build
+      - name: Build Website
         run: |
           mkdir dist
           cp app/index.html dist/
@@ -35,25 +37,21 @@ jobs:
           cp app/app.js dist/
           cp app/math.js dist/
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: calculator-build
-          path: dist/
+          path: dist
 
-  cd:
-
+  deploy:
     needs: ci
 
     runs-on: ubuntu-latest
 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: calculator-build
-
-      - name: Deploy
-        run: |
-          echo "Deploy berhasil!"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
