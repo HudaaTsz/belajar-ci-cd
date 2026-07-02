@@ -27,10 +27,13 @@ jobs:
       - name: Run Unit Test
         run: npm test
 
-      - name: Build Project
+      - name: Build
         run: |
           mkdir dist
-          cp app.js dist/
+          cp app/index.html dist/
+          cp app/style.css dist/
+          cp app/app.js dist/
+          cp app/math.js dist/
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
